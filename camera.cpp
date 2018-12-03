@@ -24,7 +24,7 @@ string get_time() {
 
 void draw_time_on_frame(Mat input_frame) {
 	string draw_string = get_time();
-	putText(input_frame, draw_string, Point(50, 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 255, 0));
+	putText(input_frame, draw_string, Point(30, 30), FONT_HERSHEY_SIMPLEX, 1, Scalar(255, 255, 0));
 }
 
 int main(void) {
@@ -42,8 +42,8 @@ int main(void) {
 	namedWindow("Capture", WINDOW_AUTOSIZE);
 	namedWindow("Difference", WINDOW_AUTOSIZE);
 
-	videowriter:
-	
+videowriter:
+
 	string date_str = get_time();
 	VideoWriter video_out("recording-" + date_str + ".mp4", CV_FOURCC('a', 'v', 'c', '1'), 24, Size(width, height));
 
@@ -52,12 +52,10 @@ int main(void) {
 	while (true) {
 		cap >> frame;
 		frame_coloured = frame;
-		
-		draw_time_on_frame(frame_coloured);
 
 		cvtColor(frame, frame, CV_BGR2GRAY);
-		resize(frame, frame, Size(128,128)); //use this to make processing faster
-		//GaussianBlur(frame, frame, Size(7, 7), 0, 0); //use this to smooth the output 
+		resize(frame, frame, Size(256, 256)); //use this to make processing faster
+		//GaussianBlur(frame, frame, Size(7, 7), 0, 0); //use this to smoothen the output 
 
 
 		difference_total_value = 0;
@@ -76,13 +74,14 @@ int main(void) {
 		frame_past = frame;
 		frame_counter++;
 
-		//cout << "frame: " << frame_counter << " difference = " << difference_total_value << endl;
+		cout << "frame: " << frame_counter << " difference = " << difference_total_value << endl;
 
 		if (movement_state = true && frame_counter < last_movement_frame + 100) {
 			video_out.write(frame_coloured);
 			movement_state = true;
-		} else {
-			if (difference_total_value > frame.rows * 750) {
+		}
+		else {
+			if (difference_total_value > frame.rows * 1000) {
 				//cout << difference_total_value << endl;
 				video_out.write(frame_coloured);
 				last_movement_frame = frame_counter;
@@ -98,11 +97,18 @@ int main(void) {
 			recording_count++;
 			goto videowriter;
 		}
-		
-		cout << movement_state << " " << previous_movement_state << endl;
-		previous_movement_state = movement_state;
-		
 
+		//cout << movement_state << " " << previous_movement_state << endl;
+		previous_movement_state = movement_state;
+
+		if (movement_state == true) {
+			putText(frame_coloured, "THERE'S MOVEMENT!", Point(30, 60), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255));
+		} else if (movement_state == false) {
+			putText(frame_coloured, "NO MOVEMENT", Point(30, 60), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 255, 0));
+		}
+		
+		draw_time_on_frame(frame_coloured);
+		
 		imshow("Capture", frame_coloured);
 		imshow("Difference", difference);
 
